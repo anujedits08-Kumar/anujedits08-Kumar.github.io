@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14213D">
+<title>SpotLock — Mobile Prototype</title>
+<style>
+  :root { --navy:#14213D; --yellow:#F9C80E; --ink:#111; --muted:#5c6470; --line:#d9dee7; --paper:#fff; --pale:#fff8d8; --green:#2E7D32; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:0 12px 28px; background:#edf0f4; color:var(--ink); font-family:Arial,Helvetica,sans-serif; }
+  .topbar { max-width:420px; margin:0 auto; padding:12px 2px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .brand { font-size:13px; font-weight:900; letter-spacing:1px; color:var(--navy); }
+  button { border:0; border-radius:8px; padding:13px 16px; font:700 15px Arial,sans-serif; cursor:pointer; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid #2874c7; outline-offset:2px; }
+  .reset { background:transparent; border:1px solid #b8c0cc; color:#394150; font-size:12px; padding:8px 10px; }
+  .app { max-width:420px; min-height:620px; margin:0 auto; background:var(--paper); border:1px solid #d9dee7; border-radius:16px; box-shadow:0 8px 28px rgba(20,33,61,.09); overflow:hidden; }
+  .screen { display:none; padding:24px 20px 26px; }
+  .screen.active { display:block; }
+  .eyebrow { color:var(--muted); font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; margin:0 0 12px; }
+  h1 { margin:0 0 10px; color:var(--navy); font-size:27px; line-height:1.12; }
+  h2 { margin:0 0 12px; color:var(--navy); font-size:22px; line-height:1.2; }
+  p { line-height:1.45; }
+  .intro { color:#4d5663; margin:0 0 22px; }
+  .marker-badge { display:block; background:var(--yellow); border:2px solid #111; border-radius:10px; padding:18px 12px; text-align:center; font-size:20px; font-weight:900; margin:18px 0 22px; }
+  .primary { width:100%; background:var(--navy); color:#fff; margin-top:12px; }
+  .secondary { width:100%; background:#eef1f5; color:#202938; border:1px solid #cbd2dc; margin-top:9px; }
+  .outline { background:#fff; color:var(--navy); border:1.5px solid var(--navy); }
+  .field-label { display:block; margin:16px 0 6px; font-size:13px; font-weight:800; }
+  input[type="text"], select { width:100%; min-height:46px; border:1px solid #aeb7c4; border-radius:8px; background:#fff; padding:10px 12px; font-size:16px; color:#111; }
+  .hint { color:var(--muted); font-size:12px; margin:8px 0 0; }
+  .row-fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .photo-box { border:2px dashed #aeb7c4; background:#f8fafc; min-height:150px; border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden; color:#687282; text-align:center; padding:12px; margin:14px 0; }
+  .photo-box img { max-width:100%; max-height:220px; object-fit:contain; display:block; }
+  .privacy { background:#fff8e5; border-left:4px solid #e0a900; padding:10px 12px; border-radius:5px; font-size:12px; color:#51451f; }
+  .pass { background:var(--pale); border:3px solid #111; border-radius:12px; text-align:center; padding:24px 12px; margin:16px 0; color:#111; }
+  .pass-zone { font-size:25px; font-weight:900; line-height:1.1; }
+  .pass-code { font-size:76px; line-height:1; font-weight:900; letter-spacing:2px; margin:12px 0; }
+  .pass-photo { width:100%; max-height:130px; object-fit:cover; border-radius:8px; margin-top:12px; }
+  .status { min-height:18px; color:var(--green); font-size:12px; font-weight:700; margin:8px 0 0; }
+  .offline { font-size:12px; background:#f0f3f6; padding:11px; border-radius:8px; color:#3f4855; margin-top:14px; }
+  .route-banner { background:var(--yellow); border:2px solid #111; border-radius:10px; padding:17px 10px; text-align:center; font-size:21px; line-height:1.25; font-weight:900; margin:18px 0; }
+  .steps { list-style:none; counter-reset:step; padding:0; margin:18px 0; }
+  .steps li { counter-increment:step; display:flex; align-items:flex-start; gap:12px; padding:13px 0; border-bottom:1px solid var(--line); font-size:15px; line-height:1.35; }
+  .steps li::before { content:counter(step); flex:0 0 30px; height:30px; display:grid; place-items:center; border-radius:50%; background:var(--navy); color:#fff; font-weight:900; }
+  .fallback-tip { background:#fff3cd; border:1px solid #e6cc79; padding:12px; border-radius:8px; font-size:13px; line-height:1.4; }
+  .small-link { background:none; color:#294f82; text-decoration:underline; padding:8px 0; font-size:13px; }
+  .footnote { text-align:center; color:#77808d; font-size:11px; padding:12px 0 0; }
+  @media (max-width:360px) { .screen{padding:20px 15px;} h1{font-size:24px;} .pass-code{font-size:64px;} .row-fields{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">SPOTLOCK · T07 / P07</div>
+  <button class="reset" id="resetBtn" type="button">Reset Demo</button>
+</header>
+
+<main class="app" aria-live="polite">
+  <!-- SCREEN 1 -->
+  <section class="screen" id="screen1">
+    <p class="eyebrow">Screen 1 · Instant landing</p>
+    <h1>SPOTLOCK</h1>
+    <p class="intro">Find your two-wheeler later.</p>
+    <div class="marker-badge" id="landingBadge">YELLOW ZONE • Y-2</div>
+    <p>Keep a simple record of the parking zone and row so you can find them when you return.</p>
+    <button class="primary" id="continueBtn" type="button">Continue</button>
+    <label class="field-label" for="manualCode">Didn’t scan a marker? Enter the printed row code.</label>
+    <input id="manualCode" type="text" value="Y-2" autocomplete="off" aria-label="Printed row code">
+    <p class="hint">Example: Y-2. No login or GPS permission required.</p>
+    <button class="secondary" id="manualContinueBtn" type="button">Use this code</button>
+  </section>
+
+  <!-- SCREEN 2 -->
+  <section class="screen" id="screen2">
+    <p class="eyebrow">Screen 2 · Confirm parking place</p>
+    <h2>Confirm your parking place</h2>
+    <p class="intro">Check the information shown on the marker beside your parking space.</p>
+    <label class="field-label" for="zoneSelect">Zone</label>
+    <select id="zoneSelect">
+      <option>YELLOW ZONE</option><option>BLUE ZONE</option><option>GREEN ZONE</option>
+    </select>
+    <label class="field-label" for="rowSelect">Row</label>
+    <select id="rowSelect">
+      <option>Y-1</option><option selected>Y-2</option><option>Y-3</option><option>Y-4</option>
+    </select>
+    <p class="hint">The initial values are taken from the demo marker. You can change them to match the printed sign.</p>
+    <button class="secondary outline" id="changeCodeBtn" type="button">Change code</button>
+    <button class="primary" id="confirmBtn" type="button">Yes, continue</button>
+  </section>
+
+  <!-- SCREEN 3 -->
+  <section class="screen" id="screen3">
+    <p class="eyebrow">Screen 3 · Optional visual clue</p>
+    <h2>Add a visual clue?</h2>
+    <p class="intro">A nearby tree, pillar, stairway, or building corner may help you recognise the area later.</p>
+    <label class="field-label" for="photoInput">Take / choose photo</label>
+    <input id="photoInput" type="file" accept="image/*" capture="environment">
+    <div class="photo-box" id="photoPreview">Your selected landmark photo will appear here.</div>
+    <div class="privacy">Privacy note: Photo is optional. Avoid people and number plates. The image stays in this browser demo on this device.</div>
+    <button class="secondary" id="skipPhotoBtn" type="button">Skip photo</button>
+    <button class="primary" id="usePhotoBtn" type="button">Use photo</button>
+  </section>
+
+  <!-- SCREEN 4 -->
+  <section class="screen" id="screen4">
+    <p class="eyebrow">Screen 4 · Parking pass</p>
+    <h2>Your parking pass</h2>
+    <div class="pass" id="passCard">
+      <div class="pass-zone" id="passZone">YELLOW ZONE</div>
+      <div class="pass-code" id="passCode">Y-2</div>
+      <div id="passPhotoWrap"></div>
+    </div>
+    <button class="primary" id="savePassBtn" type="button">Save pass to this device</button>
+    <button class="secondary" id="copyCodeBtn" type="button">Copy row code</button>
+    <p class="status" id="saveStatus" role="status"></p>
+    <div class="offline">Offline reminder: keep the printed code in mind — <strong id="offlineCode">YELLOW ZONE • Y-2</strong>. The physical row marker remains the fallback if your phone is unavailable.</div>
+    <button class="primary" id="findBtn" type="button">Find My Two-Wheeler</button>
+    <button class="small-link" id="editPassBtn" type="button">Edit parking details</button>
+  </section>
+
+  <!-- SCREEN 5 -->
+  <section class="screen" id="screen5">
+    <p class="eyebrow">Screen 5 · Evening return</p>
+    <h2>Find your two-wheeler</h2>
+    <div class="route-banner"><span id="guideZone">YELLOW ZONE</span> → ROW <span id="guideRow">Y-2</span></div>
+    <ol class="steps">
+      <li>Follow the <strong id="stepZone">YELLOW ZONE</strong> totem.</li>
+      <li>Look above vehicle height.</li>
+      <li>Match the reflective <strong id="stepRow">Y-2</strong> sign.</li>
+      <li>Check your optional landmark photo.</li>
+    </ol>
+    <div id="guidePhotoWrap"></div>
+    <button class="primary" id="showPassBtn" type="button">Show parking pass</button>
+    <button class="secondary" id="cannotFindBtn" type="button">I cannot find this row</button>
+    <div class="fallback-tip" id="fallbackTip" hidden>Check the printed zone and row code, follow only authorised pedestrian routes, and ask the parking attendant for help. Do not walk through moving traffic or restricted areas.</div>
+    <button class="small-link" id="backToStartBtn" type="button">Back to start</button>
+  </section>
+</main>
+<p class="footnote">Low-fidelity course prototype · No tracking · No account · Demo data only</p>
+
+<script>
+(() => {
+  "use strict";
+  const STORAGE_KEY = "spotlock_demo_pass_v1";
+  const $ = (id) => document.getElementById(id);
+  let draft = { zone: "YELLOW ZONE", row: "Y-2", photo: "" };
+  let currentObjectUrl = null;
+
+  function showScreen(number) {
+    document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
+    $("screen" + number).classList.add("active");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
+  function validRow(value) {
+    const cleaned = String(value || "").trim().toUpperCase().replace(/\s+/g, "");
+    const match = cleaned.match(/^([YBGR])-([1-4])$/);
+    return match ? match[1] + "-" + match[2] : null;
+  }
+
+  function zoneForRow(row) {
+    const prefix = row.charAt(0);
+    return ({ Y:"YELLOW ZONE", B:"BLUE ZONE", G:"GREEN ZONE", R:"RED ZONE" })[prefix] || "YELLOW ZONE";
+  }
+
+  function readSaved() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      console.warn("SpotLock could not read saved demo data:", error);
+      return null;
+    }
+  }
+
+  function updatePass() {
+    $("passZone").textContent = draft.zone;
+    $("passCode").textContent = draft.row;
+    $("offlineCode").textContent = draft.zone + " • " + draft.row;
+    $("guideZone").textContent = draft.zone;
+    $("guideRow").textContent = draft.row;
+    $("stepZone").textContent = draft.zone;
+    $("stepRow").textContent = draft.row;
+
+    const passWrap = $("passPhotoWrap");
+    const guideWrap = $("guidePhotoWrap");
+    passWrap.innerHTML = "";
+    guideWrap.innerHTML = "";
+    if (draft.photo) {
+      const passImg = document.createElement("img");
+      passImg.className = "pass-photo";
+      passImg.alt = "Optional saved landmark";
+      passImg.src = draft.photo;
+      passWrap.appendChild(passImg);
+
+      const guideImg = document.createElement("img");
+      guideImg.className = "pass-photo";
+      guideImg.alt = "Optional landmark reference";
+      guideImg.src = draft.photo;
+      guideWrap.appendChild(guideImg);
+    }
+  }
+
+  function syncDropdowns() {
+    $("zoneSelect").value = draft.zone;
+    $("rowSelect").value = draft.row;
+  }
+
+  function openConfirm() {
+    syncDropdowns();
+    showScreen(2);
+  }
+
+  function goToPass() {
+    updatePass();
+    $("saveStatus").textContent = "";
+    showScreen(4);
+  }
+
+  function savePass() {
+    const payload = {
+      zone: draft.zone,
+      row: draft.row,
+      photo: draft.photo || "",
+      savedAt: new Date().toISOString(),
+      version: 1
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      $("saveStatus").textContent = "Saved on this device in this browser.";
+    } catch (error) {
+      $("saveStatus").textContent = "This browser could not store the pass. Keep the printed row code as your backup.";
+      console.warn("SpotLock localStorage save failed:", error);
+    }
+  }
+
+  $("continueBtn").addEventListener("click", openConfirm);
+  $("manualContinueBtn").addEventListener("click", () => {
+    const row = validRow($("manualCode").value);
+    if (!row) {
+      $("manualCode").setCustomValidity("Enter a code such as Y-2, B-1, G-3, or R-4.");
+      $("manualCode").reportValidity();
+      return;
+    }
+    $("manualCode").setCustomValidity("");
+    draft.row = row;
+    draft.zone = zoneForRow(row);
+    openConfirm();
+  });
+  $("manualCode").addEventListener("input", () => $("manualCode").setCustomValidity(""));
+
+  $("changeCodeBtn").addEventListener("click", () => {
+    draft.zone = $("zoneSelect").value;
+    draft.row = $("rowSelect").value;
+    $("manualCode").value = draft.row;
+  });
+
+  $("confirmBtn").addEventListener("click", () => {
+    draft.zone = $("zoneSelect").value;
+    draft.row = $("rowSelect").value;
+    showScreen(3);
+  });
+
+  $("photoInput").addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Please choose an image file.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert("For this demo, please choose an image smaller than 2 MB so it can be stored locally.");
+      event.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      draft.photo = String(reader.result || "");
+      $("photoPreview").innerHTML = "";
+      const img = document.createElement("img");
+      img.src = draft.photo;
+      img.alt = "Local preview of selected landmark";
+      $("photoPreview").appendChild(img);
+    };
+    reader.onerror = () => {
+      $("photoPreview").textContent = "The image could not be previewed. You can continue without it.";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $("skipPhotoBtn").addEventListener("click", () => {
+    draft.photo = "";
+    $("photoInput").value = "";
+    $("photoPreview").textContent = "No landmark photo added.";
+    goToPass();
+  });
+  $("usePhotoBtn").addEventListener("click", goToPass);
+  $("savePassBtn").addEventListener("click", savePass);
+
+  $("copyCodeBtn").addEventListener("click", async () => {
+    const text = draft.zone + " • " + draft.row;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+      }
+      $("saveStatus").textContent = "Copied: " + text;
+    } catch (error) {
+      $("saveStatus").textContent = "Copy was unavailable. Your row code is " + draft.row + ".";
+    }
+  });
+
+  $("findBtn").addEventListener("click", () => {
+    // Save current details before opening the retrieval guide.
+    savePass();
+    showScreen(5);
+  });
+  $("showPassBtn").addEventListener("click", () => showScreen(4));
+  $("cannotFindBtn").addEventListener("click", () => {
+    $("fallbackTip").hidden = false;
+  });
+  $("editPassBtn").addEventListener("click", openConfirm);
+  $("backToStartBtn").addEventListener("click", () => showScreen(1));
+
+  $("resetBtn").addEventListener("click", () => {
+    const confirmed = window.confirm("Reset the SpotLock demo and remove the saved pass from this browser?");
+    if (!confirmed) return;
+    try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
+    draft = { zone:"YELLOW ZONE", row:"Y-2", photo:"" };
+    $("manualCode").value = "Y-2";
+    $("photoInput").value = "";
+    $("photoPreview").textContent = "Your selected landmark photo will appear here.";
+    $("fallbackTip").hidden = true;
+    $("saveStatus").textContent = "";
+    updatePass();
+    showScreen(1);
+  });
+
+  // On reopening, a previously saved pass opens directly to the evening guide.
+  const saved = readSaved();
+  if (saved && saved.zone && saved.row) {
+    draft = {
+      zone: String(saved.zone),
+      row: String(saved.row),
+      photo: typeof saved.photo === "string" ? saved.photo : ""
+    };
+    updatePass();
+    showScreen(5);
+  } else {
+    updatePass();
+    showScreen(1);
+  }
+})();
+</script>
+</body>
+</html>
